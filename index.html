@@ -3771,6 +3771,7 @@ function drawAllergenText(ctx, text, x, y, maxW, fz, normalColor, allergenColor)
 const COUNTRY_FLAGS = {
   'maroc':'ma','france':'fr','espagne':'es','italie':'it','portugal':'pt',
   'belgique':'be','pays-bas':'nl','hollande':'nl','allemagne':'de',
+  'union europeenne':'eu','union européenne':'eu','ue':'eu','europe':'eu',
   'chine':'cn','turquie':'tr','egypte':'eg','tunisie':'tn','algerie':'dz',
   'mauritanie':'mr','senegal':'sn','cote d ivoire':'ci','mali':'ml',
   'bresil':'br','argentine':'ar','etats-unis':'us','usa':'us','etats unis':'us',
@@ -3785,7 +3786,7 @@ const COUNTRY_FLAGS = {
   'qatar':'qa','jordanie':'jo','liban':'lb','israel':'il','iran':'ir',
   'pakistan':'pk','bangladesh':'bd','sri lanka':'lk','roumanie':'ro',
   'bulgarie':'bg','hongrie':'hu','republique tcheque':'cz','tchequie':'cz',
-  'slovaquie':'sk','croatie':'hr','serbie':'rs','pays bas':'nl', 'zone euro':'ez'
+  'slovaquie':'sk','croatie':'hr','serbie':'rs','pays bas':'nl'
 };
 function normalizeCountryStr(s){
   return String(s||'')
