@@ -20,6 +20,18 @@
   };
 })();
 </script>
+<script>
+// ── Diagnostic mobile (sans devtools) ────────────────────────────
+// Affiche toute erreur JS via alert() natif, indépendant du CSS/toast,
+// pour identifier précisément ce qui bloque la génération PDF sur téléphone.
+window.addEventListener('error', function(e){
+  alert('❌ Erreur JS : ' + (e.message||'inconnue') + '\n(ligne ' + (e.lineno||'?') + ')');
+});
+window.addEventListener('unhandledrejection', function(e){
+  const r = e.reason;
+  alert('❌ Erreur async : ' + (r && r.message ? r.message : String(r)));
+});
+</script>
 <!-- Playables SDK -->
 <script>// Playables SDK v1.0.0
 // Game lifecycle bridge: rAF-based game-ready detection + event communication
@@ -866,7 +878,7 @@ h1 .text-amber-400, .text-amber-400{ color: var(--marjane-yellow) !important; }
         <div class="card-title" style="margin:0"><i class="ri-printer-line"></i> File d'impression</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-ghost btn-sm" onclick="clearQueue()"><i class="ri-delete-bin-line"></i> Vider</button>
-          <button class="btn btn-amber" onclick="generatePDF()"><i class="ri-file-pdf-line"></i> PDF A4</button>
+          <button class="btn btn-amber" onclick="try{generatePDF()}catch(e){alert('❌ Erreur immédiate : '+e.message)}"><i class="ri-file-pdf-line"></i> PDF A4</button>
           <button class="btn btn-blue" style="background:#1d4ed8" onclick="shareByEmail()"><i class="ri-mail-send-line"></i> Email</button>
           <button class="btn" style="background:#25D366;color:#fff;border:none" onclick="shareByWhatsApp()"><i class="ri-whatsapp-line"></i> WhatsApp</button>
         </div>
