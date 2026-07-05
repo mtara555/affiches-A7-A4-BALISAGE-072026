@@ -7,6 +7,13 @@
 // modifie sans toucher au moteur de dessin.
 // ══════════════════════════════════════════════════════════════
 
+// Liste complète des templates disponibles (remplit le <select> Template
+// et sert de référence à findTemplate() pour valider la colonne H).
+export const TEMPLATES_ALL = [
+  'PAT','PAT_M','BOUL','B_AGN','B_FIL','B_FIL_MN','B_BCK',
+  'B_VOL','B_VOL-MN','FROM','TRAIT','FROM_CAN','GLACE',
+];
+
 // Templates avec zone fidélité (Rectangle 11 du POTX)
 export const SPECIAL_TPL = ['B_FIL', 'B_FIL_MN', 'FROM_CAN'];
 
