@@ -3855,6 +3855,7 @@ function getFlagImage(code, onLoad){
   let entry = _flagImgCache[key];
   if(!entry){
     entry = { img:new Image(), loaded:false, error:false, callbacks:[] };
+    entry.img.crossOrigin = 'anonymous'; // évite de "tainted" le canvas (bloquerait toDataURL/PDF)
     entry.img.onload  = ()=>{ entry.loaded=true; entry.callbacks.forEach(cb=>{ try{cb();}catch(e){} }); entry.callbacks=[]; };
     entry.img.onerror = ()=>{ entry.error=true; };
     entry.img.src = `https://flagcdn.com/w80/${key}.png`;
