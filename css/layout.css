@@ -100,6 +100,10 @@
 .label-frame .crop.bl{ bottom:0; left:0; border-bottom:1.5px solid; border-left:1.5px solid; }
 .label-frame .crop.br{ bottom:0; right:0; border-bottom:1.5px solid; border-right:1.5px solid; }
 
+/* ── Visibilité des onglets (pilotée par createTabRouter dans ui.js) */
+.tab{ display:none; }
+.tab.active{ display:block; }
+
 /* ── Réactif mobile : rail en haut, colonnes empilées ──────── */
 @media (max-width: 960px){
   .app-shell{ flex-direction:column; }
