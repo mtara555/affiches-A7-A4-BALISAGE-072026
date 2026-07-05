@@ -1,0 +1,115 @@
+/* ══════════════════════════════════════════════════════════════
+   LAYOUT.CSS — Structure de mise en page
+   Génération A7 · Marjane Tanger Médina
+   ══════════════════════════════════════════════════════════════
+   Dépend de tokens.css (variables). Ne définit que la structure
+   (positionnement, grilles) — les styles visuels des composants
+   (boutons, champs, cartes) sont dans components.css.
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Bandeau de version (dev uniquement, retirable) ────────── */
+.build-strip{
+  display:flex; flex-wrap:wrap; gap:var(--sp-5);
+  border-bottom:1px solid var(--border);
+  padding:var(--sp-3) var(--sp-5);
+  font-family:var(--font-mono); font-size:11px; color:var(--text-3);
+}
+
+/* ── Coquille générale ──────────────────────────────────────── */
+.app-shell{
+  display:flex;
+  min-height:100vh;
+}
+
+/* ── Rail de navigation (gauche) ───────────────────────────── */
+.app-rail{
+  width:var(--rail-w);
+  flex:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:var(--sp-2);
+  padding:var(--sp-5) 0;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow-y:auto;
+}
+.app-rail .rail-spacer{ flex:1; }
+
+/* ── Zone de travail principale ────────────────────────────── */
+.app-main{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Barre supérieure contextuelle (titre d'onglet, actions rapides) */
+.app-topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:var(--sp-4) var(--sp-6);
+  border-bottom:1px solid var(--border);
+  flex:none;
+}
+
+/* Contenu scrollable de l'onglet actif */
+.app-content{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+}
+
+/* ── Workbench : aperçu + formulaire côte à côte ───────────── */
+.workbench{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) var(--form-col-w);
+  min-height:100%;
+}
+.workbench-preview{
+  padding:var(--sp-8) var(--sp-7);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:var(--sp-5);
+}
+.workbench-form{
+  border-left:1px solid var(--border);
+  padding:var(--sp-6);
+  overflow-y:auto;
+}
+
+/* ── Grille simple pour les vues type "liste / dashboard" ──── */
+.view-stack{
+  padding:var(--sp-6) var(--sp-7);
+  display:flex;
+  flex-direction:column;
+  gap:var(--sp-6);
+}
+.grid-cols-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-5); }
+.grid-cols-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:var(--sp-5); }
+.grid-auto{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:var(--sp-5); }
+
+/* ── Cadre d'aperçu étiquette (repères de coupe) ───────────── */
+.label-frame{ position:relative; padding:var(--sp-6); }
+.label-frame .crop{ position:absolute; width:16px; height:16px; border-color:rgba(255,255,255,.35); }
+.label-frame .crop.tl{ top:0; left:0; border-top:1.5px solid; border-left:1.5px solid; }
+.label-frame .crop.tr{ top:0; right:0; border-top:1.5px solid; border-right:1.5px solid; }
+.label-frame .crop.bl{ bottom:0; left:0; border-bottom:1.5px solid; border-left:1.5px solid; }
+.label-frame .crop.br{ bottom:0; right:0; border-bottom:1.5px solid; border-right:1.5px solid; }
+
+/* ── Réactif mobile : rail en haut, colonnes empilées ──────── */
+@media (max-width: 960px){
+  .app-shell{ flex-direction:column; }
+  .app-rail{
+    width:100%; height:auto; position:relative;
+    flex-direction:row; overflow-x:auto; overflow-y:visible;
+    padding:var(--sp-3) var(--sp-4); justify-content:flex-start;
+  }
+  .app-rail .rail-spacer{ display:none; }
+  .workbench{ grid-template-columns:1fr; }
+  .workbench-form{ border-left:none; border-top:1px solid var(--border); }
+  .grid-cols-2, .grid-cols-3{ grid-template-columns:1fr; }
+}
