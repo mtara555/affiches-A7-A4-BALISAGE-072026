@@ -3678,6 +3678,31 @@ function findTemplate(code, product){
 // ═══════════════════════════════════════════════════════════════
 // CANVAS RENDERING
 // ═══════════════════════════════════════════════════════════════
+
+// Polyfill CanvasRenderingContext2D.roundRect — absent sur Safari <16,
+// certains WebViews Android et navigateurs plus anciens. Sans ce polyfill,
+// chaque appel à ctx.roundRect() lève une exception non interceptée et
+// interrompt silencieusement tout le dessin (et donc la génération PDF,
+// qui ne produit alors aucun fichier ni message d'erreur).
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    let tl, tr, br, bl;
+    if (typeof r === 'number') { tl = tr = br = bl = r; }
+    else if (Array.isArray(r)) { [tl, tr = tl, br = tr, bl = tr] = r; }
+    else { tl = tr = br = bl = 0; }
+    this.moveTo(x + tl, y);
+    this.lineTo(x + w - tr, y);
+    this.arcTo(x + w, y, x + w, y + tr, tr);
+    this.lineTo(x + w, y + h - br);
+    this.arcTo(x + w, y + h, x + w - br, y + h, br);
+    this.lineTo(x + bl, y + h);
+    this.arcTo(x, y + h, x, y + h - bl, bl);
+    this.lineTo(x, y + tl);
+    this.arcTo(x, y, x + tl, y, tl);
+    return this;
+  };
+}
+
 const S = 3; // scale: 3px per mm => canvas 222×315 (74×105mm)
 const CW = 74*S, CH = 105*S; // 222×315
 
@@ -3771,7 +3796,6 @@ function drawAllergenText(ctx, text, x, y, maxW, fz, normalColor, allergenColor)
 const COUNTRY_FLAGS = {
   'maroc':'ma','france':'fr','espagne':'es','italie':'it','portugal':'pt',
   'belgique':'be','pays-bas':'nl','hollande':'nl','allemagne':'de',
-  'union europeenne':'eu','union européenne':'ue','ue':'eu','europe':'eu',
   'chine':'cn','turquie':'tr','egypte':'eg','tunisie':'tn','algerie':'dz',
   'mauritanie':'mr','senegal':'sn','cote d ivoire':'ci','mali':'ml',
   'bresil':'br','argentine':'ar','etats-unis':'us','usa':'us','etats unis':'us',
@@ -3786,7 +3810,8 @@ const COUNTRY_FLAGS = {
   'qatar':'qa','jordanie':'jo','liban':'lb','israel':'il','iran':'ir',
   'pakistan':'pk','bangladesh':'bd','sri lanka':'lk','roumanie':'ro',
   'bulgarie':'bg','hongrie':'hu','republique tcheque':'cz','tchequie':'cz',
-  'slovaquie':'sk','croatie':'hr','serbie':'rs','pays bas':'nl'
+  'slovaquie':'sk','croatie':'hr','serbie':'rs','pays bas':'nl',
+  'union europeenne':'eu','ue':'eu','union europeene':'eu'
 };
 function normalizeCountryStr(s){
   return String(s||'')
@@ -4432,89 +4457,98 @@ function clearQueue(){
 async function generatePDF(){
   if(!state.queue.length){ toast('File vide','err'); return; }
   toast('Génération PDF en cours…','info');
-  // Précharger les drapeaux pays nécessaires (colonne F / Origine) pour qu'ils
-  // soient disponibles de façon synchrone lors du dessin de chaque étiquette
-  const flagCodes = new Set();
-  state.queue.forEach(it=>{ const c = getCountryCode(it.origine); if(c) flagCodes.add(c); });
-  await Promise.all([...flagCodes].map(code => new Promise(res=>{
-    const img = getFlagImage(code, res);
-    if(img) res(); // déjà en cache
-    setTimeout(res, 2500); // garde-fou si le flag ne charge pas (offline)
-  })));
-  const {jsPDF} = window.jspdf;
-  const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  // Positions (mm) — 4 A7 per A4
-  const positions = [[5,5],[79,5],[5,112],[79,112]];
-  const W=74, H=105;
-  let idx=0;
+  try{
+    // Précharger les drapeaux pays nécessaires (colonne F / Origine) pour qu'ils
+    // soient disponibles de façon synchrone lors du dessin de chaque étiquette
+    const flagCodes = new Set();
+    state.queue.forEach(it=>{ const c = getCountryCode(it.origine); if(c) flagCodes.add(c); });
+    await Promise.all([...flagCodes].map(code => new Promise(res=>{
+      const img = getFlagImage(code, res);
+      if(img) res(); // déjà en cache
+      setTimeout(res, 2500); // garde-fou si le flag ne charge pas (offline)
+    })));
+    if(!window.jspdf || !window.jspdf.jsPDF){ toast('jsPDF non chargé — vérifiez votre connexion','err'); return; }
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    // Positions (mm) — 4 A7 per A4
+    const positions = [[5,5],[79,5],[5,112],[79,112]];
+    const W=74, H=105;
+    let idx=0;
 
-  for(const item of state.queue){
-    if(idx>0 && idx%4===0) pdf.addPage();
-    const [px,py] = positions[idx%4];
-    // Render to offscreen canvas
-    const offCanvas = document.createElement('canvas');
-    offCanvas.width = CW; offCanvas.height = CH;
-    // Synchronous draw (no image background) or async
-    const tplImg = state.templates[item.template];
-    if(tplImg){
-      await new Promise(res=>{
-        const img=new Image();
-        img.onload=()=>{
-          const ctx=offCanvas.getContext('2d');
-          ctx.drawImage(img,0,0,CW,CH);
-          drawLabelText(ctx,item);
-          res();
-        };
-        img.src=tplImg;
-      });
-    } else {
-      const ctx=offCanvas.getContext('2d');
-      drawDefaultBg(ctx,item.template);
-      drawLabelText(ctx,item);
+    for(const item of state.queue){
+      if(idx>0 && idx%4===0) pdf.addPage();
+      const [px,py] = positions[idx%4];
+      // Render to offscreen canvas
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = CW; offCanvas.height = CH;
+      // Synchronous draw (no image background) or async
+      const tplImg = state.templates[item.template];
+      if(tplImg){
+        await new Promise((res,rej)=>{
+          const img=new Image();
+          img.onload=()=>{
+            try{
+              const ctx=offCanvas.getContext('2d');
+              ctx.drawImage(img,0,0,CW,CH);
+              drawLabelText(ctx,item);
+              res();
+            }catch(errDraw){ rej(errDraw); }
+          };
+          img.onerror=()=>rej(new Error('Image de template introuvable pour "'+item.template+'"'));
+          img.src=tplImg;
+        });
+      } else {
+        const ctx=offCanvas.getContext('2d');
+        drawDefaultBg(ctx,item.template);
+        drawLabelText(ctx,item);
+      }
+      // ── Signature MTARABET ──────────────────────────────────
+      (function drawSignature(ctx, cw, ch){
+        ctx.save();
+        // Fond pill
+        const sig = 'Marjane08';
+        const fz = Math.round(cw * 0.042);
+        ctx.font = '600 ' + fz + 'px IBM Plex Mono, monospace';
+        const tw = ctx.measureText(sig).width;
+        const px2 = cw - tw - 10, py2 = ch - fz - 4;
+        // Capsule semi-transparente
+        ctx.globalAlpha = 0.55;
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.roundRect(px2 - 4, py2 - 2, tw + 8, fz + 4, 3);
+        ctx.fill();
+        // Texte
+        ctx.globalAlpha = 0.72;
+        ctx.fillStyle = '#f5c518';
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
+        ctx.fillText(sig, px2, py2);
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      })(offCanvas.getContext('2d'), CW, CH);
+      // ────────────────────────────────────────────────────────
+
+      const imgData = offCanvas.toDataURL('image/jpeg',0.92);
+      pdf.addImage(imgData,'JPEG',px,py,W,H);
+      idx++;
     }
-    // ── Signature MTARABET ──────────────────────────────────
-    (function drawSignature(ctx, cw, ch){
-      ctx.save();
-      // Fond pill
-      const sig = 'Marjane08';
-      const fz = Math.round(cw * 0.042);
-      ctx.font = '600 ' + fz + 'px IBM Plex Mono, monospace';
-      const tw = ctx.measureText(sig).width;
-      const px2 = cw - tw - 10, py2 = ch - fz - 4;
-      // Capsule semi-transparente
-      ctx.globalAlpha = 0.55;
-      ctx.fillStyle = '#000';
-      ctx.beginPath();
-      ctx.roundRect(px2 - 4, py2 - 2, tw + 8, fz + 4, 3);
-      ctx.fill();
-      // Texte
-      ctx.globalAlpha = 0.72;
-      ctx.fillStyle = '#f5c518';
-      ctx.textBaseline = 'top';
-      ctx.textAlign = 'left';
-      ctx.fillText(sig, px2, py2);
-      ctx.globalAlpha = 1;
-      ctx.restore();
-    })(offCanvas.getContext('2d'), CW, CH);
-    // ────────────────────────────────────────────────────────
 
-    const imgData = offCanvas.toDataURL('image/jpeg',0.92);
-    pdf.addImage(imgData,'JPEG',px,py,W,H);
-    idx++;
+    // Pied de page PDF discret sur chaque page
+    const totalPages = pdf.internal.getNumberOfPages();
+    for(let p=1; p<=totalPages; p++){
+      pdf.setPage(p);
+      pdf.setFontSize(6);
+      pdf.setTextColor(160,160,160);
+      pdf.text('A7 v2.1 · Marjane08 · Marjane Tanger 08 · ' + new Date().toLocaleDateString('fr-FR'), 5, 293);
+      pdf.text('Page ' + p + '/' + totalPages, 200, 293, {align:'right'});
+    }
+
+    pdf.save(`Etiquettes_A7_${new Date().toISOString().slice(0,10)}.pdf`);
+    toast(`PDF généré — ${state.queue.length} étiquettes`,'ok');
+  }catch(errPdf){
+    console.error('[generatePDF] erreur:', errPdf);
+    toast('Erreur génération PDF : ' + (errPdf && errPdf.message ? errPdf.message : errPdf), 'err');
   }
-
-  // Pied de page PDF discret sur chaque page
-  const totalPages = pdf.internal.getNumberOfPages();
-  for(let p=1; p<=totalPages; p++){
-    pdf.setPage(p);
-    pdf.setFontSize(6);
-    pdf.setTextColor(160,160,160);
-    pdf.text('A7 v2.1 · Marjane08 · Marjane Tanger 08 · ' + new Date().toLocaleDateString('fr-FR'), 5, 293);
-    pdf.text('Page ' + p + '/' + totalPages, 200, 293, {align:'right'});
-  }
-
-  pdf.save(`Etiquettes_A7_${new Date().toISOString().slice(0,10)}.pdf`);
-  toast(`PDF généré — ${state.queue.length} étiquettes`,'ok');
 }
 
 // ═══════════════════════════════════════════════════════════════
