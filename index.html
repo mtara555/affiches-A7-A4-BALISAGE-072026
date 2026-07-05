@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Génération A7 · Marjane Tanger Médina</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;700;800;900&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Police de marque (rendu canvas des étiquettes uniquement) -->
+<style>
+@font-face{
+  font-family:'BFMarjane';
+  src:url('./fonts/BFMarjane-Black_V1.woff2') format('woff2');
+  font-weight:900; font-display:swap;
+}
+@font-face{
+  font-family:'BFMarjane';
+  src:url('./fonts/BFMarjane-Medium_V1.woff2') format('woff2');
+  font-weight:500; font-display:swap;
+}
+</style>
+
+<link rel="stylesheet" href="./css/tokens.css">
+<link rel="stylesheet" href="./css/layout.css">
+<link rel="stylesheet" href="./css/components.css">
+
+<!-- jsPDF — nécessaire à js/pdfExport.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<div class="app-shell">
+
+  <!-- ═══ Rail de navigation ═══ -->
+  <nav class="app-rail">
+    <div class="rail-logo">M8</div>
+
+    <button class="rail-btn active" data-tab="saisie">
+      <svg viewBox="0 0 24 24"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+      SAISIE
+    </button>
+    <button class="rail-btn" data-tab="file">
+      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      FILE
+      <span id="navFileCount" style="position:absolute;margin-top:-22px;margin-left:22px;background:var(--amber);color:#1a1204;border-radius:8px;font-size:9px;padding:0 4px;font-family:var(--font-mono)">0</span>
+    </button>
+    <button class="rail-btn" disabled title="Bientôt disponible">
+      <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14a8 3 0 0 0 16 0V5"/></svg>
+      BASE
+    </button>
+    <button class="rail-btn" disabled title="Bientôt disponible">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      HISTO
+    </button>
+
+    <div class="rail-spacer"></div>
+    <button class="rail-btn" disabled title="Bientôt disponible">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1z"/></svg>
+      CONFIG
+    </button>
+  </nav>
+
+  <!-- ═══ Zone principale ═══ -->
+  <main class="app-main" id="app-main">
+
+    <!-- ─── Onglet SAISIE ─── -->
+    <section class="tab active" id="tab-saisie">
+      <div class="workbench">
+
+        <!-- Aperçu (hero) -->
+        <div class="workbench-preview">
+          <div class="preview-header">
+            <div>
+              <div class="preview-eyebrow">Aperçu en direct</div>
+              <div class="preview-title" id="pvTemplate">—</div>
+            </div>
+            <span class="preview-count" id="pvCode">CODE —</span>
+          </div>
+
+          <div class="label-frame">
+            <span class="crop tl"></span><span class="crop tr"></span>
+            <span class="crop bl"></span><span class="crop br"></span>
+            <div class="label">
+              <canvas id="previewCanvas" width="222" height="315"></canvas>
+            </div>
+          </div>
+          <span class="preview-count" id="pvSpecial" style="display:none;color:var(--amber)">Prix calculé actif</span>
+
+          <div class="btn-row" style="max-width:420px">
+            <button class="btn btn-ghost" id="btnAddToQueue">
+              <i class="ri-add-circle-line"></i> + File d'attente
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="workbench-form">
+          <div class="form-section">
+            <h3><span class="n">1</span> Code produit</h3>
+            <input id="codeInput" autocomplete="off" inputmode="numeric" placeholder="Scanner ou saisir…" autofocus>
+            <div id="statusBar" style="font-size:12px;padding:4px 0;min-height:18px"></div>
+          </div>
+
+          <div class="form-section">
+            <h3><span class="n">2</span> Prix &amp; unité</h3>
+            <label class="field-label">Prix de vente (DH)</label>
+            <input id="priceInput" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00">
+            <label class="field-label">Unité / affichage</label>
+            <select id="uniteInput">
+              <option>pièce</option><option>kg</option><option>100g</option>
+              <option>L</option><option>pack</option><option>barquette</option><option>tranche</option>
+            </select>
+            <label class="field-label">Template</label>
+            <select id="templateInput">
+              <option value="">Auto</option>
+            </select>
+          </div>
+
+          <div class="form-section" id="grammageWrap" style="display:none">
+            <h3><span class="n">3</span> Grammage <span style="color:var(--amber);font-size:10px;text-transform:none;letter-spacing:0">— requis pour ce template</span></h3>
+            <input id="grammageInput" type="text" inputmode="decimal" placeholder="Ex: 0,250">
+          </div>
+
+          <div class="form-section">
+            <h3><span class="n">4</span> Fidélité 🎁</h3>
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <label class="field-label" style="margin:0">% du prix en points</label>
+              <span id="fideliteCalcDisplay" style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--amber)"></span>
+            </div>
+            <input id="fideliteInput" type="text" inputmode="decimal" placeholder="Ex: 5">
+            <div id="fideliteInfo" style="font-size:11px;color:var(--text-3);display:none"></div>
+          </div>
+
+          <button class="btn btn-primary btn-block" id="btnSubmitQueue">
+            <i class="ri-add-circle-line"></i> AJOUTER À LA FILE — ENTRÉE
+          </button>
+
+          <div class="hint-box">
+            <b>Étape 6/6 — assemblage.</b> Onglets Base, Historique, Config et import Excel arrivent dans les prochains lots. Saisie + File sont pleinement fonctionnels.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Onglet FILE ─── -->
+    <section class="tab" id="tab-file">
+      <div class="view-stack">
+        <div class="preview-header" style="max-width:none">
+          <div class="preview-title">File d'attente</div>
+          <div class="btn-row" style="width:auto">
+            <button class="btn btn-ghost" id="btnClearQueue"><i class="ri-delete-bin-line"></i> Vider</button>
+            <button class="btn btn-primary" id="btnGeneratePDF"><i class="ri-file-pdf-line"></i> Générer PDF A4</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="text-align:left;border-bottom:1px solid var(--border);color:var(--text-3);font-size:11px">
+                <th style="padding:10px 12px">Code</th>
+                <th style="padding:10px 12px">Désignation</th>
+                <th style="padding:10px 12px">Secteur</th>
+                <th style="padding:10px 12px">Prix</th>
+                <th style="padding:10px 12px">Unité</th>
+                <th style="padding:10px 12px">Grammage</th>
+                <th style="padding:10px 12px">Fidélité</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="queueBody"></tbody>
+          </table>
+          <div id="queueEmpty" style="padding:30px;text-align:center;color:var(--text-3);font-size:13px">
+            File vide — ajoutez des articles depuis l'onglet Saisie.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
