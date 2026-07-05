@@ -28,6 +28,8 @@
 
 <!-- jsPDF — nécessaire à js/pdfExport.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- SheetJS (XLSX) — nécessaire à js/base.js pour l'import/export Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -48,7 +50,7 @@
       FILE
       <span id="navFileCount" style="position:absolute;margin-top:-22px;margin-left:22px;background:var(--amber);color:#1a1204;border-radius:8px;font-size:9px;padding:0 4px;font-family:var(--font-mono)">0</span>
     </button>
-    <button class="rail-btn" disabled title="Bientôt disponible">
+    <button class="rail-btn" data-tab="base">
       <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14a8 3 0 0 0 16 0V5"/></svg>
       BASE
     </button>
@@ -180,7 +182,92 @@
       </div>
     </section>
 
+    <!-- ─── Onglet BASE ─── -->
+    <section class="tab" id="tab-base">
+      <div class="view-stack">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="baseSearch" placeholder="Rechercher code ou désignation…" style="flex:1;min-width:220px;margin-bottom:0">
+          <button class="btn btn-primary" id="btnNewArticle"><i class="ri-add-line"></i> Nouvel article</button>
+          <button class="btn btn-ghost" id="btnExportBase"><i class="ri-download-2-line"></i> Exporter Excel</button>
+          <label class="btn btn-ghost" style="cursor:pointer">
+            <i class="ri-upload-2-line"></i> Importer Excel
+            <input type="file" accept=".xlsx,.xls,.xlsm" id="importBaseFile" style="display:none">
+          </label>
+          <button class="btn btn-danger" id="btnClearBase"><i class="ri-delete-bin-2-line"></i> Vider la base</button>
+        </div>
+
+        <div class="card" style="padding:0">
+          <div class="tbl-wrap" style="max-height:480px">
+            <table>
+              <thead><tr>
+                <th>Code</th><th>Désignation FR</th><th>Désig. AR</th>
+                <th>Ingrédients FR</th><th>Ingrédients AR</th><th>Origine</th><th>Col J</th><th>Col H</th><th></th>
+              </tr></thead>
+              <tbody id="baseBody"></tbody>
+            </table>
+            <div id="baseEmpty" style="padding:32px;text-align:center;color:var(--text-3)">
+              <i class="ri-database-line" style="font-size:36px;display:block;margin-bottom:8px"></i>
+              Base de données vide
+            </div>
+          </div>
+        </div>
+        <div id="basePager"></div>
+        <div style="font-size:11px;color:var(--text-3)">
+          Format import Excel : Colonne A=Code · B=Désig.FR · C=Désig.AR · D=Ingrédients FR · E=Ingrédients AR · F=Origine · G=Col J · H=Col H
+        </div>
+      </div>
+    </section>
+
   </main>
+</div>
+
+<!-- ═══ Modale Article ═══ -->
+<div class="modal-bg" id="articleModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Nouvel Article</div>
+    <button class="modal-close" id="btnCloseArticleModal"><i class="ri-close-line"></i></button>
+
+    <div class="field">
+      <label class="field-label">Code Article *</label>
+      <input id="m_code" placeholder="Ex: 2658179">
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label class="field-label">Désignation FR *</label>
+        <input id="m_desFR" placeholder="Nom français">
+      </div>
+      <div class="field">
+        <label class="field-label">Désignation AR</label>
+        <input id="m_desAR" placeholder="الاسم بالعربية" dir="rtl">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Ingrédients FR</label>
+      <input id="m_ing" placeholder="Liste des ingrédients">
+    </div>
+    <div class="field">
+      <label class="field-label">Ingrédients AR</label>
+      <input id="m_ing_ar" placeholder="قائمة المكونات" dir="rtl">
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <label class="field-label">Origine</label>
+        <input id="m_origine" placeholder="Ex: Maroc">
+      </div>
+      <div class="field">
+        <label class="field-label">Col J</label>
+        <input id="m_colJ" placeholder="Optionnel">
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label">Col H (template forcé)</label>
+      <input id="m_colH" placeholder="Ex: FROM, PAT… (optionnel)">
+    </div>
+
+    <button class="btn btn-primary btn-block" id="btnSaveArticle">
+      <i class="ri-save-line"></i> Enregistrer
+    </button>
+  </div>
 </div>
 
 <script type="module" src="./js/main.js"></script>
