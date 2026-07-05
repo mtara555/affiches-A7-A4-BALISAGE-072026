@@ -126,7 +126,37 @@ input::placeholder{ color:var(--text-3); }
 .toast-info{ background:rgba(59,130,246,.15); border-color:var(--info); color:#93c5fd; }
 @keyframes slideIn{ from{ transform:translateX(20px); opacity:0; } to{ transform:translateX(0); opacity:1; } }
 
-/* ── Note d'aide / rappel contextuel ───────────────────────── */
+/* ── Tableaux (Base, File, Historique) ─────────────────────── */
+.tbl-wrap{ overflow:auto; border-radius:var(--radius-sm); border:1px solid var(--border); }
+table{ width:100%; border-collapse:collapse; font-size:13px; }
+table th, table td{ padding:8px 10px; border-bottom:1px solid var(--border); text-align:left; }
+table th{ color:var(--text-3); font-size:11px; text-transform:uppercase; letter-spacing:.4px; font-weight:700; }
+.alg{ color:var(--danger); font-weight:700; }
+.ing-preview{ font-size:11px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-2); }
+.ar{ font-family:var(--font-arabic); direction:rtl; }
+.mono{ font-family:var(--font-mono); }
+@media (max-width:960px){ table{ display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; } }
+
+/* ── Modale générique (voir openModal/closeModal dans ui.js) ─── */
+.modal-bg{
+  position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:500;
+  display:none; align-items:center; justify-content:center; padding:16px;
+  backdrop-filter:blur(4px);
+}
+.modal-bg.open{ display:flex; }
+.modal{
+  background:var(--surf-1); backdrop-filter:blur(20px) saturate(140%);
+  border:1px solid var(--border-2); border-radius:var(--radius-lg);
+  padding:var(--sp-6); width:100%; max-width:480px; max-height:88vh; overflow-y:auto;
+  position:relative; box-shadow:var(--shadow-card);
+}
+.modal-title{ font-family:var(--font-display); font-weight:800; font-size:18px; margin-bottom:var(--sp-4); }
+.modal-close{
+  position:absolute; top:14px; right:14px; background:var(--surf-2); border:1px solid var(--border);
+  border-radius:8px; width:30px; height:30px; color:var(--text-2); cursor:pointer;
+}
+.field{ margin-bottom:var(--sp-3); }
+.field-row-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-3); }
 .hint-box{
   margin-top:var(--sp-6); padding:14px 16px; border-radius:11px; background:rgba(255,179,0,.06);
   border:1px dashed rgba(255,179,0,.3); font-size:12px; color:var(--text-2); line-height:1.5;
