@@ -9,6 +9,9 @@ import { TEMPLATES_ALL } from './labelData.js';
 import { initA7Form, updatePreview, renderQueue, updateCounters, clearQueue, addToQueue } from './a7.js';
 import { generatePDF } from './pdfExport.js';
 import { initBaseTab, renderBase } from './base.js';
+import { initHistoryTab, renderHistory } from './history.js';
+import { initApiKeyModal, translateToArabic, spellCheckFR } from './ai.js';
+import { initConfigTab, refreshConfigTab } from './config.js';
 
 async function boot(){
   // 1. Charger les données persistées (IndexedDB + migration localStorage)
@@ -29,6 +32,11 @@ async function boot(){
   // 3. Câbler le formulaire Saisie + la file d'attente
   initA7Form();
   initBaseTab();
+  initHistoryTab();
+  initApiKeyModal();
+  initConfigTab();
+  $('#btnSpellArticle')?.addEventListener('click', () => spellCheckFR('m_desFR', 'm_desAR', 'btnSpellArticle'));
+  $('#btnTransArticle')?.addEventListener('click', () => translateToArabic('m_desFR', 'm_desAR', 'btnTransArticle'));
   $('#btnSubmitQueue')?.addEventListener('click', addToQueue);
   $('#btnAddToQueue')?.addEventListener('click', addToQueue);
 
@@ -41,9 +49,11 @@ async function boot(){
     scope: '#app-main',
     defaultTab: 'saisie',
     onEnter: {
-      saisie: () => updatePreview(),
-      file:   () => renderQueue(),
-      base:   () => renderBase(),
+      saisie:     () => updatePreview(),
+      file:       () => renderQueue(),
+      base:       () => renderBase(),
+      historique: () => renderHistory(),
+      config:     () => refreshConfigTab(),
     },
   });
   document.querySelectorAll('[data-tab]').forEach(btn => {
