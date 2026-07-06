@@ -30,6 +30,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- SheetJS (XLSX) — nécessaire à js/base.js pour l'import/export Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Html5Qrcode — nécessaire à js/scanner.js (niveau 1 : caméra live) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
 
@@ -103,7 +105,10 @@
         <div class="workbench-form">
           <div class="form-section">
             <h3><span class="n">1</span> Code produit</h3>
-            <input id="codeInput" autocomplete="off" inputmode="numeric" placeholder="Scanner ou saisir…" autofocus>
+            <div style="display:flex;gap:8px">
+              <input id="codeInput" autocomplete="off" inputmode="numeric" placeholder="Scanner ou saisir…" autofocus style="flex:1">
+              <button class="btn btn-primary" id="btnScanCode" style="padding:10px 14px" title="Scanner"><i class="ri-qr-scan-2-line"></i></button>
+            </div>
             <div id="statusBar" style="font-size:12px;padding:4px 0;min-height:18px"></div>
           </div>
 
@@ -317,7 +322,10 @@
 
     <div class="field">
       <label class="field-label">Code Article *</label>
-      <input id="m_code" placeholder="Ex: 2658179">
+      <div style="display:flex;gap:8px">
+        <input id="m_code" placeholder="Ex: 2658179" style="flex:1">
+        <button type="button" class="btn btn-primary" id="btnScanArticleCode" style="padding:10px 14px" title="Scanner"><i class="ri-qr-scan-2-line"></i></button>
+      </div>
     </div>
     <div class="field-row-2">
       <div class="field">
