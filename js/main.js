@@ -12,6 +12,7 @@ import { initBaseTab, renderBase } from './base.js';
 import { initHistoryTab, renderHistory } from './history.js';
 import { initApiKeyModal, translateToArabic, spellCheckFR } from './ai.js';
 import { initConfigTab, refreshConfigTab } from './config.js';
+import { scanBarcode } from './scanner.js';
 
 async function boot(){
   // 1. Charger les données persistées (IndexedDB + migration localStorage)
@@ -37,6 +38,20 @@ async function boot(){
   initConfigTab();
   $('#btnSpellArticle')?.addEventListener('click', () => spellCheckFR('m_desFR', 'm_desAR', 'btnSpellArticle'));
   $('#btnTransArticle')?.addEventListener('click', () => translateToArabic('m_desFR', 'm_desAR', 'btnTransArticle'));
+
+  // Scanner code-barres — Saisie et fiche Article
+  $('#btnScanCode')?.addEventListener('click', async () => {
+    const code = await scanBarcode();
+    if(code){
+      const input = $('#codeInput');
+      input.value = code;
+      input.dispatchEvent(new Event('input', { bubbles:true }));
+    }
+  });
+  $('#btnScanArticleCode')?.addEventListener('click', async () => {
+    const code = await scanBarcode();
+    if(code) $('#m_code').value = code;
+  });
   $('#btnSubmitQueue')?.addEventListener('click', addToQueue);
   $('#btnAddToQueue')?.addEventListener('click', addToQueue);
 
