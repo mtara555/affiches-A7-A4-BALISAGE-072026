@@ -54,13 +54,13 @@
       <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14a8 3 0 0 0 16 0V5"/></svg>
       BASE
     </button>
-    <button class="rail-btn" disabled title="Bientôt disponible">
+    <button class="rail-btn" data-tab="historique">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
       HISTO
     </button>
 
     <div class="rail-spacer"></div>
-    <button class="rail-btn" disabled title="Bientôt disponible">
+    <button class="rail-btn" data-tab="config">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.56-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.56 1z"/></svg>
       CONFIG
     </button>
@@ -218,7 +218,95 @@
       </div>
     </section>
 
+    <!-- ─── Onglet HISTORIQUE ─── -->
+    <section class="tab" id="tab-historique">
+      <div class="view-stack">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="histSearch" placeholder="Rechercher code, désignation, template…" style="flex:1;min-width:220px;margin-bottom:0">
+          <span id="histCount" style="font-size:11px;color:var(--text-3)"></span>
+          <div id="histPager" style="display:flex;gap:4px;align-items:center"></div>
+          <button class="btn btn-danger" id="btnClearHistory"><i class="ri-delete-bin-line"></i> Effacer</button>
+        </div>
+
+        <div class="card" style="padding:0">
+          <div class="tbl-wrap" style="max-height:500px">
+            <table>
+              <thead><tr>
+                <th>Format</th><th>Date / Heure</th><th>Code</th><th>Désignation</th>
+                <th>Template</th><th>Prix</th><th>Unité</th><th>Fidélité</th>
+              </tr></thead>
+              <tbody id="histBody"></tbody>
+            </table>
+            <div id="histEmpty" style="padding:32px;text-align:center;color:var(--text-3)">
+              <i class="ri-history-line" style="font-size:36px;display:block;margin-bottom:8px"></i>
+              Aucun historique enregistré
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Onglet CONFIG ─── -->
+    <section class="tab" id="tab-config">
+      <div class="view-stack">
+        <div class="grid-cols-2">
+          <div class="card">
+            <div class="card-title"><i class="ri-flow-chart"></i> Mapping Préfixes → Template</div>
+            <p style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+              Priorité : <b style="color:var(--amber)">1.</b> Colonne H Excel ·
+              <b style="color:var(--amber)">2.</b> Préfixe code (plus long en premier) ·
+              <b style="color:var(--amber)">3.</b> Inférence désignation FR
+            </p>
+            <div id="mappingList" style="max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
+            <div class="btn-row">
+              <button class="btn btn-ghost" id="btnAddMapping"><i class="ri-add-line"></i> Ajouter</button>
+              <button class="btn btn-primary" id="btnSaveMapping"><i class="ri-save-line"></i> Enregistrer</button>
+              <button class="btn btn-ghost" id="btnResetMapping"><i class="ri-refresh-line"></i> Réinitialiser</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title"><i class="ri-link"></i> Forcer Template par Code</div>
+            <input id="tplOverrideSearch" placeholder="Rechercher code…">
+            <div class="tbl-wrap" style="max-height:280px">
+              <table>
+                <thead><tr><th>Code</th><th>Désignation</th><th>Auto</th><th>Forcer</th></tr></thead>
+                <tbody id="tplOverrideBody"></tbody>
+              </table>
+            </div>
+            <button class="btn btn-primary" style="margin-top:12px" id="btnSaveTplOverrides"><i class="ri-save-line"></i> Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="ri-key-2-line"></i> Intelligence artificielle (Groq)</div>
+          <p style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+            Utilisée par les boutons "Traduire IA" / "Ortho + AR" dans la fiche article. Clé stockée uniquement sur cet appareil.
+          </p>
+          <button class="btn btn-ghost" id="apiKeyBtn"><i class="ri-key-2-line"></i> <span id="apiKeyBtnLabel">Clé API</span></button>
+        </div>
+      </div>
+    </section>
+
   </main>
+</div>
+
+<!-- ═══ Modale Clé API Groq ═══ -->
+<div class="modal-bg" id="apiKeyModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">🔑 Clé API Groq</div>
+    <button class="modal-close" id="btnCloseApiKeyModal"><i class="ri-close-line"></i></button>
+    <p style="font-size:12px;color:var(--text-3);margin-bottom:14px">
+      Gratuite sur <a href="https://console.groq.com/keys" target="_blank" style="color:#60a5fa">console.groq.com/keys</a>
+      → créer un compte → API Keys → Create API Key. Stockée localement sur cet appareil.
+    </p>
+    <input id="apiKeyModalInput" type="password" placeholder="gsk_…" style="font-family:var(--font-mono)">
+    <button class="btn btn-ghost btn-block" id="btnToggleApiKeyVisibility" style="margin-bottom:12px">👁 Afficher / Masquer</button>
+    <div class="btn-row">
+      <button class="btn btn-danger" id="btnDeleteApiKey"><i class="ri-delete-bin-line"></i> Supprimer</button>
+      <button class="btn btn-primary" id="btnSaveApiKey"><i class="ri-save-line"></i> Enregistrer</button>
+    </div>
+  </div>
 </div>
 
 <!-- ═══ Modale Article ═══ -->
@@ -233,11 +321,21 @@
     </div>
     <div class="field-row-2">
       <div class="field">
-        <label class="field-label">Désignation FR *</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label class="field-label" style="margin:0">Désignation FR *</label>
+          <button type="button" id="btnSpellArticle" class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:10px;color:#6ee7b7;border-color:rgba(16,185,129,.4)" title="Corriger l'orthographe FR et générer la traduction AR (IA)">
+            <i class="ri-spell-check-line"></i> Ortho + AR
+          </button>
+        </div>
         <input id="m_desFR" placeholder="Nom français">
       </div>
       <div class="field">
-        <label class="field-label">Désignation AR</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label class="field-label" style="margin:0">Désignation AR</label>
+          <button type="button" id="btnTransArticle" class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:10px;color:var(--amber);border-color:rgba(255,179,0,.4)" title="Traduire en arabe commercial (IA)">
+            <i class="ri-translate-2"></i> Traduire IA
+          </button>
+        </div>
         <input id="m_desAR" placeholder="الاسم بالعربية" dir="rtl">
       </div>
     </div>
